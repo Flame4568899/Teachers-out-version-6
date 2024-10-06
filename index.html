@@ -1,0 +1,68 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Voting System</title>
+    <style>
+        /* Your CSS styles here */
+    </style>
+</head>
+<body>
+
+<div id="teachers"></div>
+<div id="voted-teachers"></div>
+
+<script>
+    const teacherContainer = document.getElementById('teachers');
+    const votedTeacherContainer = document.getElementById('voted-teachers');
+
+    function createTeacherButton(name, voted = false) {
+        const btn = document.createElement('button');
+        btn.textContent = name;
+        btn.disabled = voted;
+        btn.onclick = () => voteTeacher(name);
+        return btn;
+    }
+
+    function fetchTeachers() {
+        fetch('/teachers')
+            .then(response => response.json())
+            .then(data => displayTeachers(data));
+    }
+
+    function voteTeacher(name) {
+        fetch('/vote', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ teacher: name })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                fetchTeachers();  // Refresh teacher list after voting
+            } else {
+                alert('Voting failed. You may have already voted for this teacher.');
+            }
+        });
+    }
+
+    function displayTeachers(teachers) {
+        teacherContainer.innerHTML = '';
+        votedTeacherContainer.innerHTML = '';
+
+        teachers.forEach(teacher => {
+            if (teacher.voted) {
+                votedTeacherContainer.appendChild(createTeacherButton(teacher.name, true));
+            } else {
+                teacherContainer.appendChild(createTeacherButton(teacher.name));
+            }
+        });
+    }
+
+    window.onload = fetchTeachers;
+</script>
+
+</body>
+</html>
